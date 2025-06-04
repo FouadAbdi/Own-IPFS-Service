@@ -13,6 +13,99 @@ A complete IPFS-like distributed file storage service built from scratch with No
 - **File Metadata**: Track file information, sizes, and timestamps
 - **Drag & Drop Upload**: Easy file uploading with drag and drop support
 
+## 📋 ToDo List & Roadmap
+
+### 🎯 High Priority Tasks
+
+#### Core Features
+- [ ] **File Search & Filtering** - Search files by name and filter by type/size
+- [ ] **File Versioning** - Track file versions and allow rollbacks
+- [ ] **User Authentication** - Add basic login system and file permissions
+- [ ] **File Encryption** - Encrypt files before storage for privacy
+- [ ] **Automatic Peer Discovery** - Connect to peers automatically using DHT
+
+#### UI/UX Improvements *(Great for new contributors!)*
+- [ ] **Dark/Light Theme Toggle** - Add theme switcher for better user experience
+- [ ] **File Preview** - Preview images, videos, and documents before download
+- [ ] **Progress Bars** - Show upload/download progress to users
+- [ ] **Mobile Responsive Design** - Make interface work well on phones/tablets
+- [ ] **Better File Manager** - Grid view, file icons, and context menus
+
+#### Developer Experience
+- [ ] **Docker Support** - Add Dockerfile and docker-compose for easy deployment
+- [ ] **API Documentation** - Create interactive API docs with examples
+- [ ] **TypeScript SDK** - Build a client library for easier integration
+- [ ] **CI/CD Pipeline** - Automated testing and deployment with GitHub Actions
+
+### 🤝 How to Contribute
+
+**We welcome contributors of all skill levels!** This project is perfect for:
+
+#### 🎨 **Frontend/UI Developers**
+- Improve the web interface design and user experience
+- Add new UI components and features
+- Make the interface mobile-friendly
+- Work on themes and accessibility
+
+#### ⚙️ **Backend Developers**
+- Enhance the P2P networking layer
+- Improve file storage and retrieval systems
+- Add new API endpoints
+- Optimize performance and security
+
+#### 📱 **Full-Stack Developers**
+- Build complete features from API to UI
+- Create integration examples and demos
+- Develop mobile or desktop applications
+
+#### 🧪 **DevOps/Testing Enthusiasts**
+- Set up automated testing and CI/CD
+- Create Docker containers and deployment scripts
+- Add monitoring and logging systems
+
+#### 📝 **Documentation Writers**
+- Write tutorials and guides
+- Improve code documentation
+- Create video tutorials or blog posts
+
+### 🚀 Getting Started as a Contributor
+
+1. **Fork the repository** and clone it locally
+2. **Pick a task** from the ToDo list above (UI/UX tasks are beginner-friendly!)
+3. **Create a feature branch**: `git checkout -b feature/your-feature-name`
+4. **Make your changes** and test them thoroughly
+5. **Submit a pull request** with a clear description
+
+**💡 Tips for Contributors:**
+- Start with smaller tasks to get familiar with the codebase
+- UI/UX improvements are always welcome and don't require deep backend knowledge
+- Feel free to suggest new features or improvements
+- Ask questions in GitHub issues if you need help
+
+### 🎯 Contribution Ideas by Skill Level
+
+#### **Beginner-Friendly Tasks:**
+- Add file type icons to the file list
+- Improve error messages and user feedback
+- Add loading animations and spinners
+- Create a simple settings page
+
+#### **Intermediate Tasks:**
+- Implement file search functionality
+- Add drag-and-drop multiple file upload
+- Create a network status dashboard
+- Build a simple file preview system
+
+#### **Advanced Tasks:**
+- Implement file encryption/decryption
+- Add WebRTC support for direct peer connections
+- Create a mobile app with React Native
+- Build a plugin system for extensions
+
+---
+
+**🌟 Join our community!** Whether you're fixing a small bug or building a major feature, every contribution helps make this project better. We're here to help you succeed!
+
 ## 🚀 Quick Start
 
 ### Installation
