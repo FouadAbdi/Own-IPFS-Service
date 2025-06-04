@@ -1,0 +1,39 @@
+{
+  "name": "own-ipfs-service",
+  "version": "1.0.0",
+  "description": "A custom IPFS-like service built with Node.js",
+  "main": "src/index.js",  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "node test/test.js",
+    "demo": "node demo.js",
+    "multi-node": "node multi-node.js"
+  },
+  "keywords": [
+    "ipfs",
+    "distributed",
+    "storage",
+    "p2p"
+  ],  "author": "Fouad Abdi <fouad.abdi78@gmail.com> (https://github.com/FouadAbdi)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/FouadAbdi/Own-IPFS-Service.git"
+  },
+  "bugs": {
+    "url": "https://github.com/FouadAbdi/Own-IPFS-Service/issues"
+  },
+  "homepage": "https://github.com/FouadAbdi/Own-IPFS-Service#readme",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "commander": "^9.5.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "fs-extra": "^11.1.1",
+    "multer": "^1.4.5-lts.1",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

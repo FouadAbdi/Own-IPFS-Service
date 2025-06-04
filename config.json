@@ -1,0 +1,33 @@
+{
+  "server": {
+    "port": 8080,
+    "host": "localhost"
+  },
+  "storage": {
+    "dataDir": "./data",
+    "maxFileSize": 104857600,
+    "compression": false
+  },
+  "p2p": {
+    "enabled": true,
+    "port": 9080,
+    "maxPeers": 50,
+    "announceFiles": true
+  },
+  "security": {
+    "cors": {
+      "enabled": true,
+      "origins": ["*"]
+    },
+    "rateLimit": {
+      "enabled": false,
+      "windowMs": 900000,
+      "max": 100
+    }
+  },
+  "features": {
+    "webInterface": true,
+    "apiDocs": true,
+    "metrics": true
+  }
+}

@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Own IPFS Service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            padding: 40px;
+        }
+        
+        .section {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid #4f46e5;
+        }
+        
+        .section h2 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+        
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .upload-area:hover {
+            border-color: #4f46e5;
+            background: #f1f5f9;
+        }
+        
+        .upload-area.dragover {
+            border-color: #4f46e5;
+            background: #eef2ff;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #64748b 0%, #475569 100%);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .input-group input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .input-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .file-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+        
+        .file-item:hover {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 5px;
+        }
+        
+        .file-meta {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+        
+        .file-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .hash-display {
+            font-family: 'Courier New', monospace;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 5px;
+            word-break: break-all;
+            margin: 10px 0;
+            font-size: 0.9rem;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            margin-top: 5px;
+        }
+        
+        .peers-list {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+        }
+        
+        .peer-item {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .peer-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-online {
+            color: #10b981;
+        }
+        
+        .status-offline {
+            color: #ef4444;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f4f6;
+            border-radius: 50%;
+            border-top-color: #4f46e5;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            transform: translateX(400px);
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #10b981;
+        }
+        
+        .notification.error {
+            background: #ef4444;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌟 Own IPFS Service</h1>
+            <p>Decentralized file storage and sharing</p>
+        </div>
+        
+        <div class="main-content">
+            <!-- Upload Section -->
+            <div class="section">
+                <h2>📤 Upload Files</h2>
+                <div class="upload-area" id="uploadArea">
+                    <p>Drag and drop files here or click to select</p>
+                    <input type="file" id="fileInput" class="file-input" multiple>
+                    <button class="btn" onclick="document.getElementById('fileInput').click()">
+                        Select Files
+                    </button>
+                </div>
+                
+                <div class="input-group">
+                    <input type="text" id="textContent" placeholder="Or paste text content here...">
+                    <input type="text" id="textFilename" placeholder="Filename (optional)">
+                    <button class="btn" onclick="uploadText()">Upload Text</button>
+                </div>
+            </div>
+            
+            <!-- Retrieve Section -->
+            <div class="section">
+                <h2>📥 Retrieve Files</h2>
+                <div class="input-group">
+                    <input type="text" id="retrieveHash" placeholder="Enter IPFS hash (e.g., QmX...)">
+                    <button class="btn" onclick="retrieveFile()">Retrieve</button>
+                    <button class="btn btn-secondary" onclick="getMetadata()">Get Info</button>
+                </div>
+                <div id="retrieveResult"></div>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="section">
+                <h2>📊 Statistics</h2>
+                <div class="stats" id="statsContainer">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalFiles">-</div>
+                        <div class="stat-label">Total Files</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalSize">-</div>
+                        <div class="stat-label">Total Size</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="peersCount">-</div>
+                        <div class="stat-label">Connected Peers</div>
+                    </div>
+                </div>
+                <button class="btn" onclick="refreshStats()">Refresh Stats</button>
+            </div>
+            
+            <!-- Files List -->
+            <div class="section">
+                <h2>📁 Stored Files</h2>
+                <button class="btn" onclick="refreshFileList()">Refresh List</button>
+                <div class="file-list" id="fileList">
+                    <p>Loading files...</p>
+                </div>
+            </div>
+            
+            <!-- P2P Network -->
+            <div class="section">
+                <h2>🌐 P2P Network</h2>
+                <div class="input-group">
+                    <input type="text" id="peerUrl" placeholder="ws://localhost:9080">
+                    <button class="btn" onclick="connectToPeer()">Connect to Peer</button>
+                </div>
+                <div class="peers-list" id="peersList">
+                    <p>No peers connected</p>
+                </div>
+                <button class="btn btn-secondary" onclick="refreshPeers()">Refresh Peers</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <script>
+        // Global variables
+        let files = [];
+        let stats = {};
+        let peers = [];
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+            refreshAll();
+        });
+        
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            // Drag and drop
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleFiles(files);
+            });
+            
+            // File input change
+            fileInput.addEventListener('change', function(e) {
+                handleFiles(e.target.files);
+            });
+            
+            // Click to select
+            uploadArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+        }
+        
+        async function handleFiles(fileList) {
+            for (let file of fileList) {
+                await uploadFile(file);
+            }
+        }
+        
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                showNotification('Uploading file...', 'info');
+                const response = await fetch('/api/add', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(`File uploaded successfully! Hash: ${result.hash}`, 'success');
+                    refreshFileList();
+                    refreshStats();
+                } else {
+                    const error = await response.json();
+                    showNotification(`Upload failed: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Upload error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function uploadText() {
+            const content = document.getElementById('textContent').value;
+            const filename = document.getElementById('textFilename').value || 'text-file.txt';
+            
+            if (!content) {
+                showNotification('Please enter some text content', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        filename: filename,
+                        mimeType: 'text/plain'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(`Text uploaded successfully! Hash: ${result.hash}`, 'success');
+                    document.getElementById('textContent').value = '';
+                    document.getElementById('textFilename').value = '';
+                    refreshFileList();
+                    refreshStats();
+                } else {
+                    const error = await response.json();
+                    showNotification(`Upload failed: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Upload error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function retrieveFile() {
+            const hash = document.getElementById('retrieveHash').value.trim();
+            
+            if (!hash) {
+                showNotification('Please enter a hash', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/cat/${hash}`);
+                
+                if (response.ok) {
+                    const contentType = response.headers.get('content-type');
+                    const filename = response.headers.get('content-disposition') || 'downloaded-file';
+                    
+                    if (contentType && contentType.startsWith('text/')) {
+                        const text = await response.text();
+                        document.getElementById('retrieveResult').innerHTML = `
+                            <div class="hash-display">
+                                <strong>Retrieved Content:</strong><br>
+                                <pre>${text}</pre>
+                            </div>
+                        `;
+                    } else {
+                        const blob = await response.blob();
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = filename.replace('inline; filename="', '').replace('"', '') || 'file';
+                        a.click();
+                        showNotification('File downloaded successfully!', 'success');
+                    }
+                } else {
+                    const error = await response.json();
+                    showNotification(`Retrieve failed: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Retrieve error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function getMetadata() {
+            const hash = document.getElementById('retrieveHash').value.trim();
+            
+            if (!hash) {
+                showNotification('Please enter a hash', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/metadata/${hash}`);
+                
+                if (response.ok) {
+                    const metadata = await response.json();
+                    document.getElementById('retrieveResult').innerHTML = `
+                        <div class="hash-display">
+                            <strong>File Metadata:</strong><br>
+                            <strong>Hash:</strong> ${metadata.hash}<br>
+                            <strong>Filename:</strong> ${metadata.filename}<br>
+                            <strong>Size:</strong> ${formatBytes(metadata.size)}<br>
+                            <strong>MIME Type:</strong> ${metadata.mimeType}<br>
+                            <strong>Uploaded:</strong> ${new Date(metadata.timestamp).toLocaleString()}
+                        </div>
+                    `;
+                } else {
+                    const error = await response.json();
+                    showNotification(`Metadata retrieval failed: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Metadata error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function refreshFileList() {
+            try {
+                const response = await fetch('/api/list');
+                files = await response.json();
+                
+                const fileList = document.getElementById('fileList');
+                
+                if (files.length === 0) {
+                    fileList.innerHTML = '<p>No files stored yet</p>';
+                    return;
+                }
+                
+                fileList.innerHTML = files.map(file => `
+                    <div class="file-item">
+                        <div class="file-info">
+                            <div class="file-name">${file.filename || 'Unknown'}</div>
+                            <div class="file-meta">
+                                ${file.hash} • ${formatBytes(file.size)} • ${new Date(file.timestamp).toLocaleString()}
+                            </div>
+                        </div>
+                        <div class="file-actions">
+                            <button class="btn" onclick="downloadFile('${file.hash}')">Download</button>
+                            <button class="btn btn-secondary" onclick="copyHash('${file.hash}')">Copy Hash</button>
+                            <button class="btn btn-danger" onclick="deleteFile('${file.hash}')">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                showNotification(`Failed to load files: ${error.message}`, 'error');
+            }
+        }
+        
+        async function refreshStats() {
+            try {
+                const [statsResponse, peersResponse] = await Promise.all([
+                    fetch('/api/stats'),
+                    fetch('/api/peers')
+                ]);
+                
+                stats = await statsResponse.json();
+                peers = await peersResponse.json();
+                
+                document.getElementById('totalFiles').textContent = stats.totalFiles;
+                document.getElementById('totalSize').textContent = stats.totalSizeFormatted;
+                document.getElementById('peersCount').textContent = peers.length;
+            } catch (error) {
+                showNotification(`Failed to load stats: ${error.message}`, 'error');
+            }
+        }
+        
+        async function refreshPeers() {
+            try {
+                const response = await fetch('/api/peers');
+                peers = await response.json();
+                
+                const peersList = document.getElementById('peersList');
+                
+                if (peers.length === 0) {
+                    peersList.innerHTML = '<p>No peers connected</p>';
+                    return;
+                }
+                
+                peersList.innerHTML = peers.map(peer => `
+                    <div class="peer-item">
+                        <div>
+                            <strong>${peer.id}</strong><br>
+                            <small>${peer.url}</small>
+                        </div>
+                        <div class="${peer.connected ? 'status-online' : 'status-offline'}">
+                            ${peer.connected ? '🟢 Online' : '🔴 Offline'}
+                        </div>
+                    </div>
+                `).join('');
+                
+                document.getElementById('peersCount').textContent = peers.length;
+            } catch (error) {
+                showNotification(`Failed to load peers: ${error.message}`, 'error');
+            }
+        }
+        
+        async function connectToPeer() {
+            const peerUrl = document.getElementById('peerUrl').value.trim();
+            
+            if (!peerUrl) {
+                showNotification('Please enter a peer URL', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/peers/connect', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ peerUrl })
+                });
+                
+                if (response.ok) {
+                    showNotification('Connection initiated', 'success');
+                    document.getElementById('peerUrl').value = '';
+                    setTimeout(refreshPeers, 2000);
+                } else {
+                    const error = await response.json();
+                    showNotification(`Connection failed: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Connection error: ${error.message}`, 'error');
+            }
+        }
+        
+        async function downloadFile(hash) {
+            window.open(`/api/cat/${hash}`, '_blank');
+        }
+        
+        async function copyHash(hash) {
+            try {
+                await navigator.clipboard.writeText(hash);
+                showNotification('Hash copied to clipboard!', 'success');
+            } catch (error) {
+                showNotification('Failed to copy hash', 'error');
+            }
+        }
+        
+        async function deleteFile(hash) {
+            if (!confirm('Are you sure you want to delete this file?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/delete/${hash}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    showNotification('File deleted successfully', 'success');
+                    refreshFileList();
+                    refreshStats();
+                } else {
+                    const error = await response.json();
+                    showNotification(`Delete failed: ${error.error}`, 'error');
+                }
+            } catch (error) {
+                showNotification(`Delete error: ${error.message}`, 'error');
+            }
+        }
+        
+        function refreshAll() {
+            refreshFileList();
+            refreshStats();
+            refreshPeers();
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 4000);
+        }
+        
+        // Auto-refresh every 30 seconds
+        setInterval(refreshAll, 30000);
+    </script>
+</body>
+</html>

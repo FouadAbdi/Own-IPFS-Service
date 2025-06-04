@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPFS File Sharing App</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .app {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .upload-section {
+            border: 2px dashed #ddd;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: border-color 0.3s;
+        }
+        
+        .upload-section:hover {
+            border-color: #007AFF;
+        }
+        
+        .upload-section.dragover {
+            border-color: #007AFF;
+            background: #f0f8ff;
+        }
+        
+        input[type="file"] {
+            display: none;
+        }
+        
+        .btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        
+        .btn:hover {
+            background: #0056d3;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        input[type="text"] {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        
+        .file-list {
+            margin-top: 30px;
+        }
+        
+        .file-item {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-info h3 {
+            margin: 0 0 5px 0;
+            color: #333;
+        }
+        
+        .file-meta {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .share-link {
+            background: #e3f2fd;
+            border: 1px solid #90caf9;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 6px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(400px);
+            transition: transform 0.3s;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: #28a745;
+        }
+        
+        .notification.error {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <h1>📁 IPFS File Sharing</h1>
+        
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadArea">
+            <h2>Upload Files</h2>
+            <p>Drag and drop files here or click to select</p>
+            <input type="file" id="fileInput" multiple>
+            <button class="btn" onclick="selectFiles()">Choose Files</button>
+        </div>
+        
+        <!-- Text Upload -->
+        <div class="input-group">
+            <input type="text" id="textContent" placeholder="Enter text to share...">
+            <button class="btn" onclick="uploadText()">Share Text</button>
+        </div>
+        
+        <!-- Download Section -->
+        <div class="input-group">
+            <input type="text" id="hashInput" placeholder="Enter IPFS hash to download...">
+            <button class="btn btn-secondary" onclick="downloadFile()">Download</button>
+        </div>
+        
+        <!-- Files List -->
+        <div class="file-list">
+            <h2>Your Files</h2>
+            <div id="filesList">
+                <p>No files uploaded yet</p>
+            </div>
+        </div>
+    </div>
+    
+    <div id="notification" class="notification"></div>
+    
+    <script>
+        const API_BASE = 'http://localhost:8080/api';
+        let uploadedFiles = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupDragDrop();
+            loadFiles();
+        });
+        
+        function setupDragDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+            
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                const files = e.dataTransfer.files;
+                handleFiles(files);
+            });
+            
+            uploadArea.addEventListener('click', selectFiles);
+            
+            fileInput.addEventListener('change', function(e) {
+                handleFiles(e.target.files);
+            });
+        }
+        
+        function selectFiles() {
+            document.getElementById('fileInput').click();
+        }
+        
+        async function handleFiles(files) {
+            for (let file of files) {
+                await uploadFile(file);
+            }
+        }
+        
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                showNotification('Uploading file...', 'info');
+                const response = await fetch(`${API_BASE}/add`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(`File uploaded! Hash: ${result.hash.substring(0, 12)}...`, 'success');
+                    addFileToList(result);
+                } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (error) {
+                showNotification(`Upload failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function uploadText() {
+            const content = document.getElementById('textContent').value;
+            if (!content.trim()) {
+                showNotification('Please enter some text', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: content,
+                        filename: 'shared-text.txt',
+                        mimeType: 'text/plain'
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    showNotification(`Text shared! Hash: ${result.hash.substring(0, 12)}...`, 'success');
+                    document.getElementById('textContent').value = '';
+                    addFileToList(result);
+                } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (error) {
+                showNotification(`Upload failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function downloadFile() {
+            const hash = document.getElementById('hashInput').value.trim();
+            if (!hash) {
+                showNotification('Please enter a hash', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${API_BASE}/cat/${hash}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `file-${hash.substring(0, 8)}`;
+                    a.click();
+                    showNotification('File downloaded!', 'success');
+                } else {
+                    throw new Error('File not found');
+                }
+            } catch (error) {
+                showNotification(`Download failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function loadFiles() {
+            try {
+                const response = await fetch(`${API_BASE}/list`);
+                if (response.ok) {
+                    const files = await response.json();
+                    uploadedFiles = files;
+                    renderFilesList();
+                }
+            } catch (error) {
+                console.error('Failed to load files:', error);
+            }
+        }
+        
+        function addFileToList(file) {
+            uploadedFiles.unshift(file);
+            renderFilesList();
+        }
+        
+        function renderFilesList() {
+            const filesList = document.getElementById('filesList');
+            
+            if (uploadedFiles.length === 0) {
+                filesList.innerHTML = '<p>No files uploaded yet</p>';
+                return;
+            }
+            
+            filesList.innerHTML = uploadedFiles.map(file => `
+                <div class="file-item">
+                    <div class="file-info">
+                        <h3>${file.filename || 'Unknown'}</h3>
+                        <div class="file-meta">
+                            Size: ${formatBytes(file.size)} • 
+                            Uploaded: ${new Date(file.timestamp).toLocaleString()}
+                        </div>
+                        <div class="share-link">
+                            Hash: ${file.hash}
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn" onclick="downloadByHash('${file.hash}')">Download</button>
+                        <button class="btn btn-secondary" onclick="copyHash('${file.hash}')">Copy Hash</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function downloadByHash(hash) {
+            try {
+                const response = await fetch(`${API_BASE}/cat/${hash}`);
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `file-${hash.substring(0, 8)}`;
+                    a.click();
+                } else {
+                    throw new Error('Download failed');
+                }
+            } catch (error) {
+                showNotification(`Download failed: ${error.message}`, 'error');
+            }
+        }
+        
+        async function copyHash(hash) {
+            try {
+                await navigator.clipboard.writeText(hash);
+                showNotification('Hash copied to clipboard!', 'success');
+            } catch (error) {
+                showNotification('Failed to copy hash', 'error');
+            }
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function showNotification(message, type = 'info') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type} show`;
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
