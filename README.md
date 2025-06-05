@@ -13,6 +13,12 @@ A complete IPFS-like distributed file storage service built from scratch with No
 - **File Metadata**: Track file information, sizes, and timestamps
 - **Drag & Drop Upload**: Easy file uploading with drag and drop support
 
+## 📸 Screenshot
+
+![Own IPFS Service Interface](Screenshot.png)
+
+*Modern web interface for easy file management and P2P file sharing*
+
 ## 📋 ToDo List & Roadmap
 
 ### 🎯 High Priority Tasks
