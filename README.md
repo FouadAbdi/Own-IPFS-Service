@@ -38,7 +38,7 @@ A complete IPFS-like distributed file storage service built from scratch with No
 - [ ] **Better File Manager** - Grid view, file icons, and context menus
 
 #### Developer Experience
-- [ ] **Docker Support** - Add Dockerfile and docker-compose for easy deployment
+- [x] **Docker Support** - Add Dockerfile and docker-compose for easy deployment ✅
 - [ ] **API Documentation** - Create interactive API docs with examples
 - [ ] **TypeScript SDK** - Build a client library for easier integration
 - [ ] **CI/CD Pipeline** - Automated testing and deployment with GitHub Actions
@@ -135,6 +135,26 @@ A complete IPFS-like distributed file storage service built from scratch with No
 4. **Open your browser:**
    - Web Interface: http://localhost:8080
    - API Documentation: http://localhost:8080/api
+
+### 🐳 Docker Installation (Recommended)
+
+1. **Using Docker Compose (easiest):**
+   ```bash
+   git clone https://github.com/FouadAbdi/Own-IPFS-Service.git
+   cd Own-IPFS-Service
+   docker-compose up -d
+   ```
+
+2. **Multi-node P2P network:**
+   ```bash
+   docker-compose up ipfs-node1 ipfs-node2
+   ```
+
+3. **Access the services:**
+   - Node 1: http://localhost:8080
+   - Node 2: http://localhost:8081
+
+📖 **Full Docker documentation:** [DOCKER.md](./DOCKER.md)
 
 ### Development Mode
 
@@ -359,6 +379,10 @@ Own-IPFS-Service/
 │   └── test.js       # Test suite
 ├── cli.js            # Command-line interface
 ├── package.json      # Dependencies and scripts
+├── Dockerfile        # Docker container configuration
+├── docker-compose.yml # Multi-container orchestration
+├── .dockerignore     # Docker build exclusions
+├── DOCKER.md         # Docker documentation
 └── README.md         # This file
 ```
 

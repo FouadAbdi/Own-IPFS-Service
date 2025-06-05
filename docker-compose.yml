@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # Main IPFS service node
+  ipfs-node1:
+    build: .
+    container_name: own-ipfs-node1
+    ports:
+      - "8080:8080"
+      - "9080:9080"
+    environment:
+      - PORT=8080
+      - DATA_DIR=/app/data
+      - NODE_ENV=production
+    volumes:
+      - ipfs_data1:/app/data
+    networks:
+      - ipfs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Second IPFS service node for P2P testing
+  ipfs-node2:
+    build: .
+    container_name: own-ipfs-node2
+    ports:
+      - "8081:8080"
+      - "9081:9080"
+    environment:
+      - PORT=8080
+      - DATA_DIR=/app/data
+      - NODE_ENV=production
+    volumes:
+      - ipfs_data2:/app/data
+    networks:
+      - ipfs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Third IPFS service node for advanced P2P testing
+  ipfs-node3:
+    build: .
+    container_name: own-ipfs-node3
+    ports:
+      - "8082:8080"
+      - "9082:9080"
+    environment:
+      - PORT=8080
+      - DATA_DIR=/app/data
+      - NODE_ENV=production
+    volumes:
+      - ipfs_data3:/app/data
+    networks:
+      - ipfs-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/stats"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    profiles:
+      - full-network
+
+volumes:
+  ipfs_data1:
+    driver: local
+  ipfs_data2:
+    driver: local
+  ipfs_data3:
+    driver: local
+
+networks:
+  ipfs-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
