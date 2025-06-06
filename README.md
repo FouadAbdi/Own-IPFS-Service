@@ -2,6 +2,20 @@
 
 A complete IPFS-like distributed file storage service built from scratch with Node.js. Store, share, and distribute files across a peer-to-peer network without relying on external IPFS services.
 
+## 📖 Learn How to Build This
+
+**🚀 [Complete Tutorial: Build Your Own IPFS Service](./TUTORIAL.md)**
+
+Want to understand how this works or build your own version? Check out our comprehensive tutorial that walks you through building this entire service from scratch! The tutorial covers:
+
+- **Architecture & Design Patterns** - Understanding distributed systems
+- **Step-by-Step Implementation** - From basic storage to P2P networking
+- **Advanced Features** - Encryption, peer discovery, and optimization
+- **Deployment Guide** - Docker, cloud deployment, and scaling
+- **Best Practices** - Testing, security, and performance
+
+Perfect for developers who want to learn about distributed systems, P2P networks, and modern Node.js development!
+
 ## ✨ Features
 
 - **Content-Addressed Storage**: Files are stored using cryptographic hashes (IPFS-compatible format)
